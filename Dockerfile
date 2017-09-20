@@ -1,11 +1,16 @@
-FROM ubuntu:16.04
+FROM ubuntu:17.04
 
 # Install wget (used to pull down beta release of mysqlbeat)
-RUN apt-get update && apt-get install -y wget
+RUN apt-get update && apt-get install -y git golang golang-glide
 
-#Download mysqlbeat release .deb
-RUN wget https://github.com/adibendahan/mysqlbeat/releases/download/1.0.0/mysqlbeat_1.0.0-160512235547_amd64.deb && \
-    dpkg -i mysqlbeat_1.0.0-160512235547_amd64.deb && \
-    rm -rf mysqlbeat_1.0.0-160512235547_amd64.deb
+RUN mkdir -p ~/.go/src/github.com/adibendahan && \
+    export GOPATH=/root/.go && export GOROOT=/usr/lib/go-1.7/ && \
+    cd ~/.go/src/github.com/adibendahan && \
+    git clone https://github.com/adibendahan/mysqlbeat && cd mysqlbeat && git checkout 1.0.0 && \
+    glide update --no-recursive && \
+    make && \
+    cp mysqlbeat /usr/bin/
+
+# A clean-up step may be good here
 
 ENTRYPOINT ["/usr/bin/mysqlbeat", "-e"]
